@@ -1,5 +1,7 @@
 import Avatar from "./Avatar";
 import Timestamp from "./Timestamp";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 type Props = {
   role: "user" | "assistant";
@@ -14,17 +16,21 @@ export default function MessageBubble({
 }: Props) {
   return (
     <div className={`message ${role}`}>
-
       <Avatar role={role} />
 
       <div className="bubble">
-
-        <p>{message}</p>
+        {role === "assistant" ? (
+          <div className="markdown-content">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {message}
+            </ReactMarkdown>
+          </div>
+        ) : (
+          <p>{message}</p>
+        )}
 
         <Timestamp time={time} />
-
       </div>
-
     </div>
   );
 }

@@ -11,12 +11,12 @@ export type Message = {
 
 type MessageListProps = {
   messages: Message[];
-  isTyping: boolean;
+  status: "thinking" | "writing" | null;
 };
 
 export default function MessageList({
   messages,
-  isTyping,
+  status,
 }: MessageListProps) {
   return (
     <div className="message-list">
@@ -36,7 +36,7 @@ export default function MessageList({
         )
       )}
 
-      {isTyping && <TypingIndicator />}
+      {status && <TypingIndicator status={status} />}
     </div>
   );
 }
