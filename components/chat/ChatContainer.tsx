@@ -10,28 +10,25 @@ import EmptyState from "./EmptyState";
 
 export default function ChatContainer() {
   const [prompt, setPrompt] = useState("");
-  const [mounted, setMounted] = useState(false);
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   // Keeps the chat following the response when the user is near the bottom.
   const shouldAutoScrollRef = useRef(true);
 
-  // Forces the chat to move to the newest message after sending.
+  // Forces the chat to move to the newest content after sending/retrying.
   const forceScrollRef = useRef(false);
 
-  const { messages, sendMessage, status } = useChat();
+  // Stores only the most recently submitted prompt.
+  // This is what the Retry button will retry.
+  const lastPromptRef = useRef("");
+
+  const { messages, sendMessage, status, error } = useChat();
 
   /*
-   * Wait until the component has mounted on the client
-   * before generating browser-local timestamps.
-   *
-   * This prevents the server/client hydration mismatch.
+   * Convert AI SDK messages into the format
+   * expected by MessageList.
    */
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   const formattedMessages: Message[] = useMemo(() => {
     return messages.map((message, index) => ({
       id: index,
@@ -43,20 +40,15 @@ export default function ChatContainer() {
         .map((part) => part.text)
         .join(""),
 
-      createdAt: mounted
-        ? new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })
-        : "",
+      createdAt: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     }));
-  }, [messages, mounted]);
+  }, [messages]);
 
   /*
-   * Check whether the user is close to the bottom.
-   *
-   * If the user manually scrolls upward,
-   * automatic scrolling stops.
+   * Detect whether the user is close to the bottom.
    */
   const handleScroll = () => {
     const container = messagesContainerRef.current;
@@ -72,10 +64,8 @@ export default function ChatContainer() {
   };
 
   /*
-   * Automatically follow new content when:
-   *
-   * - the user is already near the bottom
-   * - a new prompt was just sent
+   * Keep the conversation scrolled to the latest content
+   * when appropriate.
    */
   useEffect(() => {
     const container = messagesContainerRef.current;
@@ -97,23 +87,30 @@ export default function ChatContainer() {
 
       forceScrollRef.current = false;
     });
-  }, [formattedMessages]);
+  }, [formattedMessages, error]);
 
-  const handleSend = async () => {
-    const currentPrompt = prompt.trim();
+  /*
+   * Send a prompt to the AI.
+   *
+   * Shared by:
+   * - normal Send
+   * - Retry
+   */
+  const sendPrompt = async (text: string) => {
+    const currentPrompt = text.trim();
 
-    // Prevent empty messages.
     if (!currentPrompt) return;
 
-    /*
-     * A new prompt should always move
-     * the conversation to the latest message.
-     */
+    // Prevent duplicate requests while one is running.
+    if (status === "submitted" || status === "streaming") {
+      return;
+    }
+
     shouldAutoScrollRef.current = true;
     forceScrollRef.current = true;
 
-    // Clear the input immediately.
-    setPrompt("");
+    // Remember this prompt for Retry.
+    lastPromptRef.current = currentPrompt;
 
     await sendMessage({
       text: currentPrompt,
@@ -121,11 +118,32 @@ export default function ChatContainer() {
   };
 
   /*
-   * Convert AI SDK status into our UI states:
-   *
-   * submitted -> Thinking...
-   * streaming -> Writing...
-   * ready/error -> nothing
+   * Normal Send button / Enter key.
+   */
+  const handleSend = async () => {
+    const currentPrompt = prompt.trim();
+
+    if (!currentPrompt) return;
+
+    // Clear the input immediately.
+    setPrompt("");
+
+    await sendPrompt(currentPrompt);
+  };
+
+  /*
+   * Retry only the most recently failed prompt.
+   */
+  const handleRetry = async () => {
+    const failedPrompt = lastPromptRef.current;
+
+    if (!failedPrompt) return;
+
+    await sendPrompt(failedPrompt);
+  };
+
+  /*
+   * Map AI SDK states to our UI states.
    */
   const typingStatus =
     status === "submitted"
@@ -133,6 +151,10 @@ export default function ChatContainer() {
       : status === "streaming"
         ? "writing"
         : null;
+
+  const isRequestRunning =
+    status === "submitted" ||
+    status === "streaming";
 
   return (
     <section className="chat-shell">
@@ -144,12 +166,48 @@ export default function ChatContainer() {
         onScroll={handleScroll}
       >
         {formattedMessages.length === 0 ? (
-          <EmptyState onSuggestionClick={setPrompt} />
+          <EmptyState
+            onSuggestionClick={(text) => {
+              setPrompt(text);
+            }}
+          />
         ) : (
           <MessageList
             messages={formattedMessages}
             status={typingStatus}
           />
+        )}
+
+        {error && (
+          <div className="chat-error" role="alert">
+            <div className="chat-error-content">
+              <div className="chat-error-icon">
+                ⚠️
+              </div>
+
+              <div className="chat-error-text">
+                <strong>Something went wrong</strong>
+
+                <span>
+                  Your last response could not be completed.
+                </span>
+              </div>
+
+              <button
+                type="button"
+                className="retry-btn"
+                onClick={handleRetry}
+                disabled={
+                  isRequestRunning ||
+                  !lastPromptRef.current
+                }
+              >
+                {isRequestRunning
+                  ? "Retrying..."
+                  : "Retry"}
+              </button>
+            </div>
+          </div>
         )}
       </div>
 

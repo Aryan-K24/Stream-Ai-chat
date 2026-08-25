@@ -14,31 +14,28 @@ export default function EmptyState({
 
   return (
     <div className="empty-state">
-
-      <div className="welcome-icon">
-        ✨
-      </div>
+      <div className="welcome-icon">✨</div>
 
       <h2>Welcome to StreamAI</h2>
 
       <p>
-        Ask anything.
-        Generate ideas.
-        Write code.
-        Solve problems.
+        Ask anything. Generate ideas. Write code. Solve problems.
       </p>
 
       <div className="suggestions">
         {suggestions.map((suggestion) => (
           <button
             key={suggestion}
-            onClick={() => onSuggestionClick(suggestion)}
+            type="button"
+            onPointerUp={(e) => {
+              e.preventDefault();
+              onSuggestionClick(suggestion);
+            }}
           >
             {suggestion}
           </button>
         ))}
       </div>
-
     </div>
   );
 }

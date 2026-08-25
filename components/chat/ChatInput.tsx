@@ -9,6 +9,11 @@ export default function ChatInput({
   setPrompt,
   onSend,
 }: ChatInputProps) {
+  const handleSend = () => {
+    if (!prompt.trim()) return;
+    onSend();
+  };
+
   return (
     <div className="chat-input">
       <textarea
@@ -19,20 +24,40 @@ export default function ChatInput({
         onKeyDown={(e) => {
           if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
-            onSend();
+            handleSend();
           }
         }}
       />
 
       <div className="input-actions">
-        <button type="button">📎</button>
-
-        <button type="button">🎤</button>
+        <button
+          type="button"
+          aria-label="Attach file"
+          onPointerUp={(e) => {
+            e.preventDefault();
+          }}
+        >
+          📎
+        </button>
 
         <button
           type="button"
+          aria-label="Voice input"
+          onPointerUp={(e) => {
+            e.preventDefault();
+          }}
+        >
+          🎤
+        </button>
+
+        <button
+          type="button"
+          aria-label="Send message"
           className="send-btn"
-          onClick={onSend}
+          onPointerUp={(e) => {
+            e.preventDefault();
+            handleSend();
+          }}
         >
           ➜
         </button>
