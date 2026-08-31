@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# StreamAI — FE-07 Tool Results & Structured UI
 
-## Getting Started
+StreamAI is a Next.js AI chatbot using the Vercel AI SDK and Google Gemini. FE-07 adds a real server-side tool call and renders its lifecycle as structured UI instead of dumping JSON into the chat.
 
-First, run the development server:
+## FE-07: Website Metadata Tool
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### Tool: `analyzeWebsite`
+
+The assistant uses this tool when the user asks StreamAI to analyze, inspect, or retrieve metadata from a website URL.
+
+### Input schema
+
+```ts
+{
+  url: string; // valid http:// or https:// URL
+}
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Return shape
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```ts
+{
+  url: string;
+  title: string | null;
+  description: string | null;
+  image: string | null;
+  statusCode: number;
+}
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Error behavior
 
-## Learn More
+The tool throws a descriptive error when a webpage cannot be fetched, returns a non-2xx response, takes too long, or does not return HTML. The client renders this as a dedicated `output-error` tool card rather than crashing or displaying a raw JSON error.
 
-To learn more about Next.js, take a look at the following resources:
+## Tool lifecycle UI
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The client renders all four required AI SDK tool states:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **`input-streaming`** — "Preparing website analysis" while the tool input is being streamed.
+2. **`input-available`** — "Inspecting webpage" with the URL once the complete input is available.
+3. **`output-available`** — a structured website-analysis result card with title, description, HTTP status, URL, and optional social preview.
+4. **`output-error`** — a dedicated failure card explaining that the website could not be analyzed.
 
-## Deploy on Vercel
+The tool result is rendered as a real component in `components/chat/WebsiteTool.tsx`, not as a JSON dump.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Project structure for FE-07
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+lib/tools/analyzeWebsite.ts       # server-side Zod tool definition
+components/chat/WebsiteTool.tsx   # typed tool lifecycle + result UI
+components/chat/WebsiteTool.module.css
+components/chat/ChatContainer.tsx # reads typed tool parts from AI SDK messages
+components/chat/MessageList.tsx
+components/chat/AssistantMessage.tsx
+app/api/chat/route.ts              # registers the server-side tool
+```
+
+## Run locally
+
+```bash
+npm install
+npm run dev
+```
+
+Set the existing Gemini environment variable used by the project, then open `http://localhost:3000`.
+
+### Test the successful tool call
+
+Try:
+
+> Analyze this website: https://example.com
+
+### Test the designed error state
+
+Try:
+
+> Analyze this website: https://example.invalid
+
+The second request should produce the designed red `output-error` tool state.

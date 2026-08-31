@@ -1,0 +1,175 @@
+.toolCard,
+.toolResultCard {
+  width: min(100%, 760px);
+  margin: 4px 0 4px 62px;
+  border-radius: 18px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+  transition: opacity 200ms ease, transform 200ms ease, border-color 200ms ease;
+}
+
+.toolCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+}
+
+.toolCardStreaming { border-color: #bfdbfe; background: #f8fbff; }
+.toolCardRunning { border-color: #93c5fd; background: #f8fbff; }
+.toolCardError { border-color: #fecaca; background: #fff7f7; }
+
+.toolIcon {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.toolIconBlue { background: #dbeafe; color: #2563eb; }
+.toolIconRed { background: #fee2e2; color: #dc2626; }
+
+.toolCardCopy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+
+.toolEyebrow {
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.toolCardCopy strong { color: #111827; font-size: 14px; }
+.toolMuted { color: #64748b; font-size: 13px; line-height: 1.45; }
+
+.toolUrl {
+  color: #475569;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.toolPulse,
+.toolSpinner {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  border-radius: 50%;
+}
+
+.toolPulse {
+  background: #60a5fa;
+  animation: toolPulse 1.1s ease-in-out infinite;
+}
+
+.toolSpinner {
+  border: 2px solid #bfdbfe;
+  border-top-color: #2563eb;
+  animation: toolSpin 0.8s linear infinite;
+}
+
+@keyframes toolPulse {
+  0%, 100% { transform: scale(0.75); opacity: 0.45; }
+  50% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes toolSpin { to { transform: rotate(360deg); } }
+
+.toolResultCard {
+  padding: 20px;
+  border-color: #bbf7d0;
+}
+
+.toolResultTopline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.toolResultTopline h3 {
+  margin: 4px 0 2px;
+  color: #111827;
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+.toolDomain { color: #64748b; font-size: 12px; }
+
+.toolSuccessBadge {
+  flex-shrink: 0;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #166534;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.toolResultGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 130px;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.toolResultGrid > div,
+.toolImageRow {
+  padding: 13px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.toolFieldLabel {
+  display: block;
+  margin-bottom: 5px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.toolResultGrid p { color: #334155; font-size: 13px; line-height: 1.5; }
+
+.toolImageRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.toolImageRow a {
+  color: #2563eb;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.toolResultUrl {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+  color: #64748b;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 700px) {
+  .toolCard,
+  .toolResultCard { margin-left: 0; }
+  .toolResultGrid { grid-template-columns: 1fr; }
+  .toolResultTopline { flex-direction: column; }
+}
