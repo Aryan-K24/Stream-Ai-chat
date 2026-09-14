@@ -18,6 +18,7 @@ export default function ChatInput({
     <div className="chat-input">
       <textarea
         rows={2}
+        aria-label="Message StreamAI"
         placeholder="Message StreamAI..."
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
